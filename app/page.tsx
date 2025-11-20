@@ -49,6 +49,8 @@ const ParetoChartGenerator: React.FC = () => {
   const [pasteText, setPasteText] = useState<string>("");
   const [pasteError, setPasteError] = useState<string>("");
 
+  const [syncThreshold, setSyncThreshold] = useState<boolean>(false);
+
   const addCategory = () => {
     const newCategory: CategoryData = {
       id: Date.now().toString(),
@@ -75,6 +77,17 @@ const ParetoChartGenerator: React.FC = () => {
         cat.id === id ? { ...cat, [field]: value } : cat
       )
     );
+  };
+
+  const handleSyncThreshold = (checked: boolean) => {
+    setSyncThreshold(checked);
+
+    if (checked && categories.length > 0) {
+      const firstThreshold = categories[0].threshold;
+      setCategories(
+        categories.map((cat) => ({ ...cat, threshold: firstThreshold }))
+      );
+    }
   };
 
   const generateChart = () => {
@@ -268,8 +281,25 @@ const ParetoChartGenerator: React.FC = () => {
                       Cumulative
                     </th>
 
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border">
-                      Threshold (%)
+                    <th className="px-4 py-3 border">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold text-gray-700">
+                          Threshold (%)
+                        </span>
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={syncThreshold}
+                            onChange={(e) =>
+                              handleSyncThreshold(e.target.checked)
+                            }
+                            className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                          />
+                          <span className="text-xs text-gray-600 whitespace-nowrap">
+                            Same for all
+                          </span>
+                        </label>
+                      </div>
                     </th>
                     <th className="px-4 py-3 text-center text-sm font-semibold text-gray-700 border">
                       Action
@@ -331,7 +361,7 @@ const ParetoChartGenerator: React.FC = () => {
                             placeholder="80"
                             min="0"
                             max="100"
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                           />
                         </td>
                         <td className="px-4 py-3 border text-center">
@@ -472,7 +502,6 @@ const ParetoChartGenerator: React.FC = () => {
               Paste your data with 2 columns: Category and Value (separated by
               tabs or spaces)
             </p>
- 
 
             <textarea
               value={pasteText}
