@@ -13,7 +13,13 @@ import {
   ResponsiveContainer,
   ReferenceLine,
 } from "recharts";
-import { Plus, Trash2, Download, BarChart3 } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Download,
+  BarChart3,
+  ClipboardPaste,
+} from "lucide-react";
 
 interface CategoryData {
   id: string;
@@ -38,6 +44,10 @@ const ParetoChartGenerator: React.FC = () => {
 
   const [xAxisLabel, setXAxisLabel] = useState<string>("Category");
   const [yAxisLabel, setYAxisLabel] = useState<string>("Value");
+
+  const [showPasteModal, setShowPasteModal] = useState<boolean>(false);
+  const [pasteText, setPasteText] = useState<string>("");
+  const [pasteError, setPasteError] = useState<string>("");
 
   const addCategory = () => {
     const newCategory: CategoryData = {
@@ -94,6 +104,61 @@ const ParetoChartGenerator: React.FC = () => {
       validCategories.reduce((sum, cat) => sum + cat.threshold, 0) /
       validCategories.length;
     setThresholdLine(avgThreshold || 80);
+  };
+
+  const handlePasteImport = () => {
+    setPasteError("");
+
+    if (!pasteText.trim()) {
+      setPasteError("Please paste some data");
+      return;
+    }
+
+    const lines = pasteText
+      .trim()
+      .split("\n")
+      .filter((line) => line.trim());
+
+    if (lines.length === 0) {
+      setPasteError("No data found");
+      return;
+    }
+
+    const newCategories: CategoryData[] = [];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      const columns = line.split(/[\t\s]+/).filter((col) => col);
+
+      if (columns.length < 2) {
+        setPasteError(
+          `Row ${i + 1}: Need at least 2 columns (Category and Value)`
+        );
+        return;
+      }
+
+      const category = columns[0];
+      const value = parseFloat(columns[1]);
+
+      if (isNaN(value)) {
+        setPasteError(
+          `Row ${i + 1}: Value "${columns[1]}" is not a valid number`
+        );
+        return;
+      }
+
+      newCategories.push({
+        id: `paste-${Date.now()}-${i}`,
+        category: category,
+        value: value,
+        threshold: 80,
+      });
+    }
+
+    setCategories(newCategories);
+    setShowPasteModal(false);
+    setPasteText("");
+    setPasteError("");
   };
 
   const downloadChart = () => {
@@ -156,13 +221,22 @@ const ParetoChartGenerator: React.FC = () => {
               <h2 className="text-lg font-semibold text-gray-800">
                 Enter Categories
               </h2>
-              <button
-                onClick={addCategory}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-                Add Category
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowPasteModal(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                >
+                  <ClipboardPaste className="w-4 h-4" />
+                  Paste from Excel
+                </button>
+                <button
+                  onClick={addCategory}
+                  className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add Category
+                </button>
+              </div>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full border-collapse">
@@ -386,6 +460,54 @@ const ParetoChartGenerator: React.FC = () => {
           </div>
         )}
       </div>
+
+      {showPasteModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">
+              Paste Data from Excel
+            </h3>
+
+            <p className="text-sm text-gray-600 mb-2">
+              Paste your data with 2 columns: Category and Value (separated by
+              tabs or spaces)
+            </p>
+ 
+
+            <textarea
+              value={pasteText}
+              onChange={(e) => setPasteText(e.target.value)}
+              placeholder="Paste your data here..."
+              className="w-full text-gray-600  h-48 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-sm"
+            />
+
+            {pasteError && (
+              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+                <p className="text-sm text-red-600">{pasteError}</p>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => {
+                  setShowPasteModal(false);
+                  setPasteText("");
+                  setPasteError("");
+                }}
+                className="px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handlePasteImport}
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              >
+                Import Data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
