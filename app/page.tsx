@@ -128,6 +128,20 @@ const ParetoChartGenerator: React.FC = () => {
       btoa(unescape(encodeURIComponent(svgData)));
   };
 
+  const calculateStats = () => {
+    const total = categories.reduce((sum, cat) => sum + (cat.value || 0), 0);
+    let cumulative = 0;
+
+    return categories.map((cat) => {
+      const percentage = total > 0 ? ((cat.value || 0) / total) * 100 : 0;
+      cumulative += cat.value || 0;
+      return {
+        percentage: percentage.toFixed(2),
+        cumulative: cumulative,
+      };
+    });
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4">
       <div className="max-w-7xl mx-auto">
@@ -172,6 +186,14 @@ const ParetoChartGenerator: React.FC = () => {
                         placeholder="Value"
                       />
                     </th>
+
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border">
+                      Percentage (%)
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border">
+                      Cumulative
+                    </th>
+
                     <th className="px-4 py-3 text-left text-sm font-semibold text-gray-700 border">
                       Threshold (%)
                     </th>
@@ -181,62 +203,75 @@ const ParetoChartGenerator: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {categories.map((cat) => (
-                    <tr key={cat.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 border">
-                        <input
-                          type="text"
-                          value={cat.category}
-                          onChange={(e) =>
-                            updateCategory(cat.id, "category", e.target.value)
-                          }
-                          placeholder="e.g., NGD"
-                          className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </td>
-                      <td className="px-4 py-3 border">
-                        <input
-                          type="number"
-                          value={cat.value || ""}
-                          onChange={(e) =>
-                            updateCategory(
-                              cat.id,
-                              "value",
-                              parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="0"
-                          className="w-full px-3 text-black py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </td>
-                      <td className="px-4 py-3 border">
-                        <input
-                          type="number"
-                          value={cat.threshold || ""}
-                          onChange={(e) =>
-                            updateCategory(
-                              cat.id,
-                              "threshold",
-                              parseFloat(e.target.value) || 0
-                            )
-                          }
-                          placeholder="80"
-                          min="0"
-                          max="100"
-                          className="w-full px-3 py-2 border text-black border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        />
-                      </td>
-                      <td className="px-4 py-3 border text-center">
-                        <button
-                          onClick={() => removeCategory(cat.id)}
-                          disabled={categories.length === 1}
-                          className="p-2 text-red-600 hover:bg-red-50 rounded-md disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {categories.map((cat, index) => {
+                    const stats = calculateStats();
+                    return (
+                      <tr key={cat.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3 border">
+                          <input
+                            type="text"
+                            value={cat.category}
+                            onChange={(e) =>
+                              updateCategory(cat.id, "category", e.target.value)
+                            }
+                            placeholder="e.g., NGD"
+                            className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </td>
+                        <td className="px-4 py-3 border">
+                          <input
+                            type="number"
+                            value={cat.value || ""}
+                            onChange={(e) =>
+                              updateCategory(
+                                cat.id,
+                                "value",
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                            placeholder="0"
+                            className="w-full px-3 py-2 text-black border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </td>
+                        <td className="px-4 py-3 border">
+                          <div className="px-3 py-2 bg-gray-50    rounded-md text-gray-700 font-medium">
+                            {stats[index].percentage}%
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 border">
+                          <div className="px-3 py-2 bg-gray-50    rounded-md text-gray-700 font-medium">
+                            {stats[index].cumulative}
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 border">
+                          <input
+                            type="number"
+                            value={cat.threshold || ""}
+                            onChange={(e) =>
+                              updateCategory(
+                                cat.id,
+                                "threshold",
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                            placeholder="80"
+                            min="0"
+                            max="100"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          />
+                        </td>
+                        <td className="px-4 py-3 border text-center">
+                          <button
+                            onClick={() => removeCategory(cat.id)}
+                            disabled={categories.length === 1}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-md disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -265,7 +300,7 @@ const ParetoChartGenerator: React.FC = () => {
               </button>
             </div>
 
-            <div ref={chartRef} className="w-full h-96">
+            <div ref={chartRef} className="w-full h-[600px]">
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart
                   data={chartData}
@@ -282,16 +317,26 @@ const ParetoChartGenerator: React.FC = () => {
                       fill: "#374151",
                     }}
                   />
-                <YAxis 
-  yAxisId="left"
-  tick={{ fill: '#374151', fontSize: 12 }}
-  label={{ value: `${yAxisLabel} (%)`, angle: -90, position: 'insideLeft', fill: '#374151' }}
-/>
-                  <YAxis 
-                    yAxisId="right" 
+                  <YAxis
+                    yAxisId="left"
+                    tick={{ fill: "#374151", fontSize: 12 }}
+                    label={{
+                      value: `${yAxisLabel} (%)`,
+                      angle: -90,
+                      position: "insideLeft",
+                      fill: "#374151",
+                    }}
+                  />
+                  <YAxis
+                    yAxisId="right"
                     orientation="right"
-                    tick={{ fill: '#dc2626', fontSize: 12 }}
-                    label={{ value: 'Cumulative (%)', angle: 90, position: 'insideRight', fill: '#dc2626' }}
+                    tick={{ fill: "#dc2626", fontSize: 12 }}
+                    label={{
+                      value: "Cumulative (%)",
+                      angle: 90,
+                      position: "insideRight",
+                      fill: "#dc2626",
+                    }}
                   />
                   <Tooltip
                     contentStyle={{
@@ -313,9 +358,10 @@ const ParetoChartGenerator: React.FC = () => {
                     strokeWidth={2}
                     label={{
                       value: `${thresholdLine}% Threshold`,
-                      position: "right",
+                      position: "insideTopRight",
                       fill: "#10b981",
                       fontSize: 12,
+                      offset: 10,
                     }}
                   />
                   <Bar
