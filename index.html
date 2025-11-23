@@ -1,702 +1,838 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
 
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Pareto Chart Generator</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-annotation/2.1.0/chartjs-plugin-annotation.min.js"></script>
+
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background-color: #f9fafb;
-            padding: 2rem 1rem;
-        }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          Oxygen, Ubuntu, Cantarell, sans-serif;
+        background-color: #f9fafb;
+        padding: 2rem 1rem;
+      }
 
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      .card {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        padding: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.5rem;
+      }
+
+      h2 {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+      }
+
+      .button-group {
+        display: flex;
+        gap: 0.75rem;
+      }
+
+      button {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .btn-primary {
+        background-color: #2563eb;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background-color: #1d4ed8;
+      }
+
+      .btn-success {
+        background-color: #16a34a;
+        color: white;
+      }
+
+      .btn-success:hover {
+        background-color: #15803d;
+      }
+
+      .btn-secondary {
+        background-color: #e5e7eb;
+        color: #374151;
+      }
+
+      .btn-secondary:hover {
+        background-color: #d1d5db;
+      }
+
+      .btn-full {
+        width: 100%;
+        justify-content: center;
+        padding: 0.75rem;
+        font-size: 1rem;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 1.5rem;
+      }
+
+      th,
+      td {
+        padding: 0.75rem 1rem;
+        border: 1px solid #e5e7eb;
+        text-align: left;
+      }
+
+      th {
+        background-color: #f3f4f6;
+        font-weight: 600;
+        color: #374151;
+        font-size: 0.875rem;
+      }
+
+      input[type="text"],
+      input[type="number"] {
+        width: 100%;
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-size: 0.875rem;
+      }
+
+      input[type="text"]:focus,
+      input[type="number"]:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .header-input {
+        background: transparent;
+        border-bottom: 2px solid transparent;
+        border-radius: 0;
+        padding: 0.25rem 0.5rem;
+        font-weight: 600;
+        color: #374151;
+      }
+
+      .header-input:hover {
+        border-bottom-color: #60a5fa;
+      }
+
+      .header-input:focus {
+        border-bottom-color: #2563eb;
+        box-shadow: none;
+      }
+
+      .static-cell {
+        background-color: #f9fafb;
+        border-radius: 6px;
+        padding: 0.5rem 0.75rem;
+        color: #374151;
+        font-weight: 500;
+      }
+
+      .btn-delete {
+        background: none;
+        border: none;
+        color: #dc2626;
+        padding: 0.5rem;
+        cursor: pointer;
+        border-radius: 6px;
+      }
+
+      .btn-delete:hover:not(:disabled) {
+        background-color: #fef2f2;
+      }
+
+      .btn-delete:disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+      }
+
+      .checkbox-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      input[type="checkbox"] {
+        width: 1rem;
+        height: 1rem;
+        cursor: pointer;
+      }
+
+      .checkbox-label {
+        font-size: 0.75rem;
+        color: #4b5563;
+        white-space: nowrap;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+      }
+
+      .modal.active {
+        display: flex;
+      }
+
+      .modal-content {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        max-width: 600px;
+        width: 100%;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+      }
+
+      .modal-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 1rem;
+      }
+
+      .modal-description {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.5rem;
+      }
+
+      textarea {
+        width: 100%;
+        height: 200px;
+        padding: 0.75rem;
+        border: 1px solid #d1d5db;
+        border-radius: 6px;
+        font-family: monospace;
+        font-size: 0.875rem;
+        resize: vertical;
+        color: #374151;
+      }
+
+      textarea:focus {
+        outline: none;
+        border-color: #2563eb;
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+      }
+
+      .error-message {
+        margin-top: 0.75rem;
+        padding: 0.75rem;
+        background-color: #fef2f2;
+        border: 1px solid #fecaca;
+        border-radius: 6px;
+        color: #dc2626;
+        font-size: 0.875rem;
+      }
+
+      .modal-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        margin-top: 1.5rem;
+      }
+
+      .chart-container {
+        width: 100%;
+        height: 600px;
+        position: relative;
+      }
+
+      .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+      }
+
+      .chart-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #111827;
+      }
+
+      .overflow-auto {
+        overflow-x: auto;
+      }
+
+      @media (max-width: 768px) {
         .container {
-            max-width: 1400px;
-            margin: 0 auto;
+          padding: 0;
         }
 
         .card {
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            padding: 2rem;
-            margin-bottom: 2rem;
-        }
-
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 1.5rem;
-        }
-
-        h2 {
-            font-size: 1.125rem;
-            font-weight: 600;
-            color: #1f2937;
+          border-radius: 0;
         }
 
         .button-group {
-            display: flex;
-            gap: 0.75rem;
+          flex-direction: column;
+          width: 100%;
         }
 
-        button {
-            padding: 0.5rem 1rem;
-            border: none;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+        .button-group button {
+          width: 100%;
+          justify-content: center;
         }
+      }
 
-        .btn-primary {
-            background-color: #2563eb;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: #1d4ed8;
-        }
-
-        .btn-success {
-            background-color: #16a34a;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background-color: #15803d;
-        }
-
-        .btn-secondary {
-            background-color: #e5e7eb;
-            color: #374151;
-        }
-
-        .btn-secondary:hover {
-            background-color: #d1d5db;
-        }
-
-        .btn-full {
-            width: 100%;
-            justify-content: center;
-            padding: 0.75rem;
-            font-size: 1rem;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 1.5rem;
-        }
-
-        th, td {
-            padding: 0.75rem 1rem;
-            border: 1px solid #e5e7eb;
-            text-align: left;
-        }
-
-        th {
-            background-color: #f3f4f6;
-            font-weight: 600;
-            color: #374151;
-            font-size: 0.875rem;
-        }
-
-        input[type="text"],
-        input[type="number"] {
-            width: 100%;
-            padding: 0.5rem 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-size: 0.875rem;
-        }
-
-        input[type="text"]:focus,
-        input[type="number"]:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .header-input {
-            background: transparent;
-            border-bottom: 2px solid transparent;
-            border-radius: 0;
-            padding: 0.25rem 0.5rem;
-            font-weight: 600;
-            color: #374151;
-        }
-
-        .header-input:hover {
-            border-bottom-color: #60a5fa;
-        }
-
-        .header-input:focus {
-            border-bottom-color: #2563eb;
-            box-shadow: none;
-        }
-
-        .static-cell {
-            background-color: #f9fafb;
-            border-radius: 6px;
-            padding: 0.5rem 0.75rem;
-            color: #374151;
-            font-weight: 500;
-        }
-
-        .btn-delete {
-            background: none;
-            border: none;
-            color: #dc2626;
-            padding: 0.5rem;
-            cursor: pointer;
-            border-radius: 6px;
-        }
-
-        .btn-delete:hover:not(:disabled) {
-            background-color: #fef2f2;
-        }
-
-        .btn-delete:disabled {
-            opacity: 0.3;
-            cursor: not-allowed;
-        }
-
-        .checkbox-container {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        input[type="checkbox"] {
-            width: 1rem;
-            height: 1rem;
-            cursor: pointer;
-        }
-
-        .checkbox-label {
-            font-size: 0.75rem;
-            color: #4b5563;
-            white-space: nowrap;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            border-radius: 8px;
-            padding: 1.5rem;
-            max-width: 600px;
-            width: 100%;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-        }
-
-        .modal-title {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #111827;
-            margin-bottom: 1rem;
-        }
-
-        .modal-description {
-            font-size: 0.875rem;
-            color: #6b7280;
-            margin-bottom: 0.5rem;
-        }
-
-        textarea {
-            width: 100%;
-            height: 200px;
-            padding: 0.75rem;
-            border: 1px solid #d1d5db;
-            border-radius: 6px;
-            font-family: monospace;
-            font-size: 0.875rem;
-            resize: vertical;
-            color: #374151;
-        }
-
-        textarea:focus {
-            outline: none;
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-        }
-
-        .error-message {
-            margin-top: 0.75rem;
-            padding: 0.75rem;
-            background-color: #fef2f2;
-            border: 1px solid #fecaca;
-            border-radius: 6px;
-            color: #dc2626;
-            font-size: 0.875rem;
-        }
-
-        .modal-actions {
-            display: flex;
-            justify-content: flex-end;
-            gap: 0.75rem;
-            margin-top: 1.5rem;
-        }
-
-        .chart-container {
-            width: 100%;
-            height: 600px;
-            position: relative;
-        }
-
-        .chart-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-        }
-
-        .chart-title {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: #111827;
-        }
-
-        .overflow-auto {
-            overflow-x: auto;
-        }
-
-        @media (max-width: 768px) {
-            .container {
-                padding: 0;
-            }
-
-            .card {
-                border-radius: 0;
-            }
-
-            .button-group {
-                flex-direction: column;
-                width: 100%;
-            }
-
-            .button-group button {
-                width: 100%;
-                justify-content: center;
-            }
-        }
-
-        button i {
-    font-size: 1rem;
-    line-height: 1;
-    display: inline-block;
-}
-
+      button i {
+        font-size: 1rem;
+        line-height: 1;
+        display: inline-block;
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <div class="card">
-            <div class="header">
-                <h2>Enter Categories</h2>
-                <div class="button-group">
-                    <button class="btn-success" onclick="openPasteModal()">
-                        <i class="fa fa-clipboard" aria-hidden="true"></i> Paste from Excel
-                    </button>
-                    <button class="btn-primary" onclick="addCategory()">
-                        <i class="fa fa-plus-circle" aria-hidden="true"></i> Add Category
-                    </button>
-                </div>
-            </div>
-
-            <div class="overflow-auto">
-                <table id="categoryTable">
-                    <thead>
-                        <tr>
-                            <th>
-                                <input type="text" id="xAxisLabel" class="header-input" value="Category" placeholder="Category Name">
-                            </th>
-                            <th>
-                                <input type="text" id="yAxisLabel" class="header-input" value="Value" placeholder="Value">
-                            </th>
-                            <th>Percentage (%)</th>
-                            <th>Cumulative</th>
-                            <th>
-                                <div style="display: flex; justify-content: space-between; align-items: center;">
-                                    <span>Threshold (%)</span>
-                                    <div class="checkbox-container">
-                                        <input type="checkbox" id="syncThreshold" onchange="handleSyncThreshold(this.checked)">
-                                        <label class="checkbox-label" for="syncThreshold">Same for all</label>
-                                    </div>
-                                </div>
-                            </th>
-                            <th style="text-align: center;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody id="categoryBody">
-                    </tbody>
-                </table>
-            </div>
-
-            <button class="btn-primary btn-full" onclick="generateChart()">
-                Generate Pareto Chart
+      <div class="card">
+        <div class="header">
+          <h2>Enter Categories</h2>
+          <div class="button-group">
+            <button class="btn-success" onclick="openPasteModal()">
+              <i class="fa fa-clipboard" aria-hidden="true"></i> Paste from
+              Excel
             </button>
+            <button class="btn-primary" onclick="addCategory()">
+              <i class="fa fa-plus-circle" aria-hidden="true"></i> Add Category
+            </button>
+          </div>
         </div>
 
-        <div id="chartCard" class="card" style="display: none;">
-            <div class="chart-header">
-                <h2 class="chart-title">Pareto Chart - Abnormalities by Unit</h2>
-                <button class="btn-success" onclick="downloadChart()">
-                    <i class="fa fa-download" aria-hidden="true"></i> Download Chart
-                </button>
-            </div>
-            <div class="chart-container">
-                <canvas id="paretoChart"></canvas>
-            </div>
+        <div class="overflow-auto">
+          <table id="categoryTable">
+            <thead>
+              <tr>
+                <th>
+                  <input
+                    type="text"
+                    id="xAxisLabel"
+                    class="header-input"
+                    value="Category"
+                    placeholder="Category Name"
+                  />
+                </th>
+                <th>
+                  <input
+                    type="text"
+                    id="yAxisLabel"
+                    class="header-input"
+                    value="Value"
+                    placeholder="Value"
+                  />
+                </th>
+                <th>Percentage (%)</th>
+                <th>Cumulative</th>
+                <th>
+                  <div
+                    style="
+                      display: flex;
+                      justify-content: space-between;
+                      align-items: center;
+                    "
+                  >
+                    <span>Threshold (%)</span>
+                    <div class="checkbox-container">
+                      <input
+                        type="checkbox"
+                        id="syncThreshold"
+                        onchange="handleSyncThreshold(this.checked)"
+                      />
+                      <label class="checkbox-label" for="syncThreshold"
+                        >Same for all</label
+                      >
+                    </div>
+                  </div>
+                </th>
+                <th style="text-align: center">Action</th>
+              </tr>
+            </thead>
+            <tbody id="categoryBody"></tbody>
+          </table>
         </div>
+
+        <button class="btn-primary btn-full" onclick="generateChart()">
+          Generate Pareto Chart
+        </button>
+      </div>
+
+      <div id="chartCard" class="card" style="display: none">
+        <div class="chart-header">
+          <h2 class="chart-title">Pareto Chart - Abnormalities by Unit</h2>
+          <button class="btn-success" onclick="downloadChart()">
+            <i class="fa fa-download" aria-hidden="true"></i> Download Chart
+          </button>
+        </div>
+        <div class="chart-container">
+          <canvas id="paretoChart"></canvas>
+        </div>
+      </div>
     </div>
 
     <div id="pasteModal" class="modal">
-        <div class="modal-content">
-            <h3 class="modal-title">Paste Data from Excel</h3>
-            <p class="modal-description">
-                Paste your data with 2 columns: Category and Value (separated by tabs or spaces)
-            </p>
-            <textarea id="pasteText" placeholder="Paste your data here..."></textarea>
-            <div id="pasteError" class="error-message" style="display: none;"></div>
-            <div class="modal-actions">
-                <button class="btn-secondary" onclick="closePasteModal()">Cancel</button>
-                <button class="btn-primary" onclick="handlePasteImport()">Import Data</button>
-            </div>
+      <div class="modal-content">
+        <h3 class="modal-title">Paste Data from Excel</h3>
+        <p class="modal-description">
+          Paste your data with 2 columns: Category and Value (separated by tabs
+          or spaces)
+        </p>
+        <textarea
+          id="pasteText"
+          placeholder="Paste your data here..."
+        ></textarea>
+        <div id="pasteError" class="error-message" style="display: none"></div>
+        <div class="modal-actions">
+          <button class="btn-secondary" onclick="closePasteModal()">
+            Cancel
+          </button>
+          <button class="btn-primary" onclick="handlePasteImport()">
+            Import Data
+          </button>
         </div>
+      </div>
     </div>
 
     <script>
-        let categories = [{ id: '1', category: '', value: 0, threshold: 80 }];
-        let chartInstance = null;
 
-        function renderTable() {
-            const tbody = document.getElementById('categoryBody');
-            tbody.innerHTML = '';
-            const stats = calculateStats();
 
-            categories.forEach((cat, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+        const target = e.target;
+        
+        // Check if it's an input in the table
+        if (target.tagName === 'INPUT' && target.closest('#categoryTable')) {
+            e.preventDefault();
+            
+            const row = target.closest('tr');
+            const cell = target.closest('td');
+            const allCells = Array.from(row.querySelectorAll('td'));
+            const currentCellIndex = allCells.indexOf(cell);
+            
+            // Only navigate between first two columns (index 0 and 1)
+            if (currentCellIndex === 0) {
+                // From column 1 → go to column 2
+                const secondCell = allCells[1];
+                const secondInput = secondCell.querySelector('input[type="number"]');
+                if (secondInput) {
+                    secondInput.focus();
+                    secondInput.select();
+                }
+            } else if (currentCellIndex === 1) {
+                // From column 2 → go to column 1 of next row
+                const nextRow = row.nextElementSibling;
+                if (nextRow) {
+                    const firstInput = nextRow.querySelector('input[type="text"]');
+                    if (firstInput) {
+                        firstInput.focus();
+                        firstInput.select();
+                    }
+                } else {
+                    // At last row, add new category
+                    addCategory();
+                    setTimeout(() => {
+                        const tbody = document.getElementById('categoryBody');
+                        const newRow = tbody.lastElementChild;
+                        const firstInput = newRow.querySelector('input[type="text"]');
+                        if (firstInput) {
+                            firstInput.focus();
+                            firstInput.select();
+                        }
+                    }, 50);
+                }
+            }
+        }
+    }
+});
+
+
+
+
+
+      let categories = [{ id: "1", category: "", value: 0, threshold: 80 }];
+      let chartInstance = null;
+
+      function renderTable() {
+        const tbody = document.getElementById("categoryBody");
+        tbody.innerHTML = "";
+        const stats = calculateStats();
+
+        categories.forEach((cat, index) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
                     <td>
                         <input type="text" value="${cat.category}" 
-                               onchange="updateCategory('${cat.id}', 'category', this.value)" 
+                               onchange="updateCategory('${
+                                 cat.id
+                               }', 'category', this.value)" 
                                placeholder="e.g., NGD">
                     </td>
                     <td>
-                        <input type="number" value="${cat.value || ''}" 
-                               onchange="updateCategory('${cat.id}', 'value', parseFloat(this.value) || 0)" 
+                        <input type="number" value="${cat.value || ""}" 
+                               onchange="updateCategory('${
+                                 cat.id
+                               }', 'value', parseFloat(this.value) || 0)" 
                                placeholder="0">
                     </td>
                     <td>
-                        <div class="static-cell">${stats[index].percentage}%</div>
+                        <div class="static-cell">${
+                          stats[index].percentage
+                        }%</div>
                     </td>
                     <td>
-                        <div class="static-cell">${stats[index].cumulative}</div>
+                        <div class="static-cell">${
+                          stats[index].cumulative
+                        }</div>
                     </td>
                     <td>
-                        <input type="number" value="${cat.threshold || ''}" 
-                               onchange="updateCategory('${cat.id}', 'threshold', parseFloat(this.value) || 0)" 
+                        <input type="number" value="${cat.threshold || ""}" 
+                               onchange="updateCategory('${
+                                 cat.id
+                               }', 'threshold', parseFloat(this.value) || 0)" 
                                placeholder="80" min="0" max="100">
                     </td>
                     <td style="text-align: center;">
-                        <button class="btn-delete" onclick="removeCategory('${cat.id}')" 
-                                ${categories.length === 1 ? 'disabled' : ''}>
+                        <button class="btn-delete" onclick="removeCategory('${
+                          cat.id
+                        }')" 
+                                ${categories.length === 1 ? "disabled" : ""}>
                                 <i class="fa fa-trash" aria-hidden="true"></i>
 
                         </button>
                     </td>
                 `;
-                tbody.appendChild(row);
-            });
-        }
+          tbody.appendChild(row);
+        });
+      }
 
-        function addCategory() {
-            categories.push({
-                id: Date.now().toString(),
-                category: '',
-                value: 0,
-                threshold: 80
-            });
-            renderTable();
-        }
-
-        function removeCategory(id) {
-            if (categories.length > 1) {
-                categories = categories.filter(cat => cat.id !== id);
-                renderTable();
-            }
-        }
-
-        function updateCategory(id, field, value) {
-            categories = categories.map(cat => 
-                cat.id === id ? { ...cat, [field]: value } : cat
-            );
-            renderTable();
-        }
-
-        function calculateStats() {
-            const total = categories.reduce((sum, cat) => sum + (cat.value || 0), 0);
-            let cumulative = 0;
-
-            return categories.map(cat => {
-                const percentage = total > 0 ? ((cat.value || 0) / total) * 100 : 0;
-                cumulative += cat.value || 0;
-                return {
-                    percentage: percentage.toFixed(2),
-                    cumulative: cumulative
-                };
-            });
-        }
-
-        function handleSyncThreshold(checked) {
-            if (checked && categories.length > 0) {
-                const firstThreshold = categories[0].threshold;
-                categories = categories.map(cat => ({ ...cat, threshold: firstThreshold }));
-                renderTable();
-            }
-        }
-
-        function openPasteModal() {
-            document.getElementById('pasteModal').classList.add('active');
-            document.getElementById('pasteText').value = '';
-            document.getElementById('pasteError').style.display = 'none';
-        }
-
-        function closePasteModal() {
-            document.getElementById('pasteModal').classList.remove('active');
-        }
-
-        function handlePasteImport() {
-            const pasteText = document.getElementById('pasteText').value;
-            const errorDiv = document.getElementById('pasteError');
-            errorDiv.style.display = 'none';
-
-            if (!pasteText.trim()) {
-                errorDiv.textContent = 'Please paste some data';
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            const lines = pasteText.trim().split('\n').filter(line => line.trim());
-
-            if (lines.length === 0) {
-                errorDiv.textContent = 'No data found';
-                errorDiv.style.display = 'block';
-                return;
-            }
-
-            const newCategories = [];
-
-            for (let i = 0; i < lines.length; i++) {
-                const line = lines[i].trim();
-                const columns = line.split(/[\t\s]+/).filter(col => col);
-
-                if (columns.length < 2) {
-                    errorDiv.textContent = `Row ${i + 1}: Need at least 2 columns (Category and Value)`;
-                    errorDiv.style.display = 'block';
-                    return;
-                }
-
-                const category = columns[0];
-                const value = parseFloat(columns[1]);
-
-                if (isNaN(value)) {
-                    errorDiv.textContent = `Row ${i + 1}: Value "${columns[1]}" is not a valid number`;
-                    errorDiv.style.display = 'block';
-                    return;
-                }
-
-                newCategories.push({
-                    id: `paste-${Date.now()}-${i}`,
-                    category: category,
-                    value: value,
-                    threshold: 80
-                });
-            }
-
-            categories = newCategories;
-            renderTable();
-            closePasteModal();
-        }
-
-        function generateChart() {
-            const validCategories = categories.filter(cat => cat.category && cat.value > 0);
-
-            if (validCategories.length === 0) {
-                alert('Please add at least one category with a name and value');
-                return;
-            }
-
-            const sorted = [...validCategories].sort((a, b) => b.value - a.value);
-            const total = sorted.reduce((sum, cat) => sum + cat.value, 0);
-
-            let cumulative = 0;
-            const chartData = sorted.map(cat => {
-                const percentage = (cat.value / total) * 100;
-                cumulative += percentage;
-                return {
-                    category: cat.category,
-                    percentage: parseFloat(percentage.toFixed(2)),
-                    cumulative: parseFloat(cumulative.toFixed(2))
-                };
-            });
-
-            const avgThreshold = validCategories.reduce((sum, cat) => sum + cat.threshold, 0) / validCategories.length;
-            const thresholdLine = avgThreshold || 80;
-
-            const xAxisLabel = document.getElementById('xAxisLabel').value || 'Category';
-            const yAxisLabel = document.getElementById('yAxisLabel').value || 'Value';
-
-            document.getElementById('chartCard').style.display = 'block';
-
-            const ctx = document.getElementById('paretoChart').getContext('2d');
-
-            if (chartInstance) {
-                chartInstance.destroy();
-            }
-
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: chartData.map(d => d.category),
-                    datasets: [
-                        {
-                            type: 'bar',
-                            label: 'Percentage',
-                            data: chartData.map(d => d.percentage),
-                            backgroundColor: '#6366f1',
-                            borderRadius: 4,
-                            yAxisID: 'y'
-                        },
-                        {
-                            type: 'line',
-                            label: 'Cumulative %',
-                            data: chartData.map(d => d.cumulative),
-                            borderColor: '#dc2626',
-                            backgroundColor: '#dc2626',
-                            borderWidth: 3,
-                            pointRadius: 5,
-                            pointBackgroundColor: '#dc2626',
-                            yAxisID: 'y1'
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: {
-                        mode: 'index',
-                        intersect: false
-                    },
-                    plugins: {
-                        legend: {
-                            display: true,
-                            position: 'bottom'
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return context.dataset.label + ': ' + context.parsed.y.toFixed(2) + '%';
-                                }
-                            }
-                        },
-                        annotation: {
-                            annotations: {
-                                line1: {
-                                    type: 'line',
-                                    yMin: thresholdLine,
-                                    yMax: thresholdLine,
-                                    yScaleID: 'y1',
-                                    borderColor: '#10b981',
-                                    borderWidth: 2,
-                                    borderDash: [5, 5],
-                                    label: {
-                                        display: true,
-                                        content: `${thresholdLine.toFixed(0)}% Threshold`,
-                                        position: 'end',
-                                        backgroundColor: '#10b981',
-                                        color: 'white'
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            type: 'linear',
-                            display: true,
-                            position: 'left',
-                            title: {
-                                display: true,
-                                text: `${yAxisLabel} (%)`
-                            }
-                        },
-                        y1: {
-                            type: 'linear',
-                            display: true,
-                            position: 'right',
-                            title: {
-                                display: true,
-                                text: 'Cumulative (%)'
-                            },
-                            grid: {
-                                drawOnChartArea: false
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: xAxisLabel
-                            }
-                        }
-                    }
-                }
-            });
-
-            document.getElementById('chartCard').scrollIntoView({ behavior: 'smooth' });
-        }
-
-        function downloadChart() {
-            const canvas = document.getElementById('paretoChart');
-            const link = document.createElement('a');
-            link.download = 'pareto-chart.png';
-            link.href = canvas.toDataURL('image/png');
-            link.click();
-        }
-
+      function addCategory() {
+        categories.push({
+          id: Date.now().toString(),
+          category: "",
+          value: 0,
+          threshold: 80,
+        });
         renderTable();
+      }
+
+      function removeCategory(id) {
+        if (categories.length > 1) {
+          categories = categories.filter((cat) => cat.id !== id);
+          renderTable();
+        }
+      }
+
+      function updateCategory(id, field, value) {
+        categories = categories.map((cat) =>
+          cat.id === id ? { ...cat, [field]: value } : cat
+        );
+        renderTable();
+      }
+
+      function calculateStats() {
+        const total = categories.reduce(
+          (sum, cat) => sum + (cat.value || 0),
+          0
+        );
+        let cumulative = 0;
+
+        return categories.map((cat) => {
+          const percentage = total > 0 ? ((cat.value || 0) / total) * 100 : 0;
+          cumulative += cat.value || 0;
+          return {
+            percentage: percentage.toFixed(2),
+            cumulative: cumulative,
+          };
+        });
+      }
+
+      function handleSyncThreshold(checked) {
+        if (checked && categories.length > 0) {
+          const firstThreshold = categories[0].threshold;
+          categories = categories.map((cat) => ({
+            ...cat,
+            threshold: firstThreshold,
+          }));
+          renderTable();
+        }
+      }
+
+      function openPasteModal() {
+        document.getElementById("pasteModal").classList.add("active");
+        document.getElementById("pasteText").value = "";
+        document.getElementById("pasteError").style.display = "none";
+      }
+
+      function closePasteModal() {
+        document.getElementById("pasteModal").classList.remove("active");
+      }
+
+      function handlePasteImport() {
+        const pasteText = document.getElementById("pasteText").value;
+        const errorDiv = document.getElementById("pasteError");
+        errorDiv.style.display = "none";
+
+        if (!pasteText.trim()) {
+          errorDiv.textContent = "Please paste some data";
+          errorDiv.style.display = "block";
+          return;
+        }
+
+        const lines = pasteText
+          .trim()
+          .split("\n")
+          .filter((line) => line.trim());
+
+        if (lines.length === 0) {
+          errorDiv.textContent = "No data found";
+          errorDiv.style.display = "block";
+          return;
+        }
+
+        const newCategories = [];
+
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i].trim();
+          const columns = line.split(/[\t\s]+/).filter((col) => col);
+
+          if (columns.length < 2) {
+            errorDiv.textContent = `Row ${
+              i + 1
+            }: Need at least 2 columns (Category and Value)`;
+            errorDiv.style.display = "block";
+            return;
+          }
+
+          const category = columns[0];
+          const value = parseFloat(columns[1]);
+
+          if (isNaN(value)) {
+            errorDiv.textContent = `Row ${i + 1}: Value "${
+              columns[1]
+            }" is not a valid number`;
+            errorDiv.style.display = "block";
+            return;
+          }
+
+          newCategories.push({
+            id: `paste-${Date.now()}-${i}`,
+            category: category,
+            value: value,
+            threshold: 80,
+          });
+        }
+
+        categories = newCategories;
+        renderTable();
+        closePasteModal();
+      }
+
+      function generateChart() {
+        const validCategories = categories.filter(
+          (cat) => cat.category && cat.value > 0
+        );
+
+        if (validCategories.length === 0) {
+          alert("Please add at least one category with a name and value");
+          return;
+        }
+
+        const sorted = [...validCategories].sort((a, b) => b.value - a.value);
+        const total = sorted.reduce((sum, cat) => sum + cat.value, 0);
+
+        let cumulative = 0;
+        const chartData = sorted.map((cat) => {
+          cumulative += cat.value; // Changed from cumulative += percentage
+          const percentage = (cat.value / total) * 100;
+          return {
+            category: cat.category,
+            value: cat.value,
+            percentage: parseFloat(percentage.toFixed(2)),
+            cumulative: cumulative, // Changed from parseFloat(cumulative.toFixed(2))
+          };
+        });
+        const avgThreshold =
+          validCategories.reduce((sum, cat) => sum + cat.threshold, 0) /
+          validCategories.length;
+        const thresholdLine = avgThreshold || 80;
+
+        const xAxisLabel =
+          document.getElementById("xAxisLabel").value || "Category";
+        const yAxisLabel =
+          document.getElementById("yAxisLabel").value || "Value";
+
+        document.getElementById("chartCard").style.display = "block";
+
+        const ctx = document.getElementById("paretoChart").getContext("2d");
+
+        if (chartInstance) {
+          chartInstance.destroy();
+        }
+
+        chartInstance = new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: chartData.map((d) => d.category),
+            datasets: [
+             
+            {
+        type: 'bar',
+        label: yAxisLabel,
+        data: chartData.map(d => d.value),
+        backgroundColor: '#6366f1',
+        borderRadius: 4,
+        yAxisID: 'y',
+        order: 2  // Add this
+    },
+    {
+        type: 'line',
+        label: 'Cumulative',
+        data: chartData.map(d => d.cumulative),
+        borderColor: '#dc2626',
+        backgroundColor: '#dc2626',
+        borderWidth: 3,
+        pointRadius: 5,
+        pointBackgroundColor: '#dc2626',
+        yAxisID: 'y1',
+        order: 1  // Add this
+    }
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            interaction: {
+              mode: "index",
+              intersect: false,
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: "bottom",
+              },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    return (
+                      context.dataset.label + ": " + context.parsed.y.toFixed(2)
+                    );
+                  },
+                },
+              },
+              annotation: {
+        annotations: {
+            line1: {
+                type: 'line',
+                yMin: (thresholdLine / 100) * total,  // Convert threshold % to actual value
+                yMax: (thresholdLine / 100) * total,
+                yScaleID: 'y1',  // Changed to y1 since cumulative is now actual values
+                borderColor: '#10b981',
+                borderWidth: 2,
+                borderDash: [5, 5],
+                label: {
+                    display: true,
+                    content: `${thresholdLine.toFixed(0)}% Threshold`,
+                    position: 'end',
+                    backgroundColor: '#10b981',
+                    color: 'white'
+                }
+            }
+        }
+    }
+
+            },
+            scales: {
+              y: {
+                type: "linear",
+                display: true,
+                position: "left",
+                title: {
+                  display: true,
+                  text: yAxisLabel, // Removed (%)
+                },
+                beginAtZero: true,
+              },
+              y1: {
+                type: "linear",
+                display: true,
+                position: "right",
+                title: {
+                  display: true,
+                  text: "Cumulative", // Removed (%)
+                },
+                grid: {
+                  drawOnChartArea: false,
+                },
+                beginAtZero: true,
+                // Removed min: 0, max: 100
+              },
+              x: {
+                title: {
+                  display: true,
+                  text: xAxisLabel,
+                },
+              },
+            },
+          },
+        });
+
+        document
+          .getElementById("chartCard")
+          .scrollIntoView({ behavior: "smooth" });
+      }
+
+      function downloadChart() {
+        const canvas = document.getElementById("paretoChart");
+        const link = document.createElement("a");
+        link.download = "pareto-chart.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }
+
+      renderTable();
     </script>
-</body>
+  </body>
 </html>
