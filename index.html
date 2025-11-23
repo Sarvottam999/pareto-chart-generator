@@ -611,65 +611,62 @@ document.addEventListener('keydown', function(e) {
       }
 
       function handlePasteImport() {
-        const pasteText = document.getElementById("pasteText").value;
-        const errorDiv = document.getElementById("pasteError");
-        errorDiv.style.display = "none";
+    const pasteText = document.getElementById('pasteText').value;
+    const errorDiv = document.getElementById('pasteError');
+    errorDiv.style.display = 'none';
 
-        if (!pasteText.trim()) {
-          errorDiv.textContent = "Please paste some data";
-          errorDiv.style.display = "block";
-          return;
+    if (!pasteText.trim()) {
+        errorDiv.textContent = 'Please paste some data';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    const lines = pasteText.trim().split('\n').filter(line => line.trim());
+
+    if (lines.length === 0) {
+        errorDiv.textContent = 'No data found';
+        errorDiv.style.display = 'block';
+        return;
+    }
+
+    const newCategories = [];
+
+    for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        
+        // Find last occurrence of a number (including decimals and time format)
+        const match = line.match(/^(.*?)\s+([\d.:]+)$/);
+        
+        if (!match) {
+            errorDiv.textContent = `Row ${i + 1}: Cannot find category and value`;
+            errorDiv.style.display = 'block';
+            return;
         }
 
-        const lines = pasteText
-          .trim()
-          .split("\n")
-          .filter((line) => line.trim());
+        const category = match[1].trim();
+        const valueStr = match[2];
+        
+        // Convert time format (HH:MM:SS) to decimal if needed, or just parse as number
+        const value = parseFloat(valueStr.replace(/:/g, '.'));
 
-        if (lines.length === 0) {
-          errorDiv.textContent = "No data found";
-          errorDiv.style.display = "block";
-          return;
+        if (!category || isNaN(value)) {
+            errorDiv.textContent = `Row ${i + 1}: Invalid data format`;
+            errorDiv.style.display = 'block';
+            return;
         }
 
-        const newCategories = [];
-
-        for (let i = 0; i < lines.length; i++) {
-          const line = lines[i].trim();
-          const columns = line.split(/[\t\s]+/).filter((col) => col);
-
-          if (columns.length < 2) {
-            errorDiv.textContent = `Row ${
-              i + 1
-            }: Need at least 2 columns (Category and Value)`;
-            errorDiv.style.display = "block";
-            return;
-          }
-
-          const category = columns[0];
-          const value = parseFloat(columns[1]);
-
-          if (isNaN(value)) {
-            errorDiv.textContent = `Row ${i + 1}: Value "${
-              columns[1]
-            }" is not a valid number`;
-            errorDiv.style.display = "block";
-            return;
-          }
-
-          newCategories.push({
+        newCategories.push({
             id: `paste-${Date.now()}-${i}`,
             category: category,
             value: value,
-            threshold: 80,
-          });
-        }
+            threshold: 80
+        });
+    }
 
-        categories = newCategories;
-        renderTable();
-        closePasteModal();
-      }
-
+    categories = newCategories;
+    renderTable();
+    closePasteModal();
+}
       function generateChart() {
         const validCategories = categories.filter(
           (cat) => cat.category && cat.value > 0
